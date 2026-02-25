@@ -23,6 +23,11 @@ output "bastion_sg_id" {
   value       = module.security_groups.bastion_sg_id
 }
 
+output "alb_sg_id" {
+  description = "Security group ID for Application Load Balancer"
+  value       = module.security_groups.alb_sg_id
+}
+
 output "app_sg_id" {
   description = "Security group ID for application instances"
   value       = module.security_groups.app_sg_id
@@ -31,4 +36,24 @@ output "app_sg_id" {
 output "internal_sg_id" {
   description = "Security group ID for internal VPC traffic"
   value       = module.security_groups.internal_sg_id
+}
+
+output "ec2_role_name" {
+  description = "IAM role name used by EC2 instances in the dev environment"
+  value       = module.iam.ec2_role_name
+}
+
+output "ec2_role_arn" {
+  description = "IAM role ARN used by EC2 instances in the dev environment"
+  value       = module.iam.ec2_role_arn
+}
+
+output "instance_profile_name" {
+  description = "IAM instance profile name used by EC2 instances in the dev environment"
+  value       = module.iam.instance_profile_name
+}
+
+output "instance_profile_arn" {
+  description = "IAM instance profile ARN used by EC2 instances in the dev environment"
+  value       = module.iam.instance_profile_arn
 }
