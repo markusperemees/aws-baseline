@@ -1,0 +1,19 @@
+#!/bin/bash
+set -euxo pipefail
+
+ROLE="${role}"
+
+if [ "$ROLE" = "bastion" ]; then
+  echo "Bastion host initialized: $(date -u +%FT%TZ)" > /etc/motd
+fi
+
+if [ "$ROLE" = "app" ]; then
+  dnf install -y python3 || yum install -y python3
+
+  mkdir -p /var/www/app
+  cat > /var/www/app/index.html <<'HTML'
+<h1>Secure Baseline App</h1>
+HTML
+
+  nohup python3 -m http.server 8080 --directory /var/www/app > /var/log/app-http.log 2>&1 &
+fi

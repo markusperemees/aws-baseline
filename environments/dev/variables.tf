@@ -51,6 +51,109 @@ variable "bastion_ssh_cidr" {
   }
 }
 
+variable "key_name" {
+  description = "Existing AWS key pair name for EC2 SSH access (optional)."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.key_name == null || length(trimspace(var.key_name)) > 0
+    error_message = "key_name must be null or a non-empty key pair name."
+  }
+}
+
+variable "app_ami_id" {
+  description = "Optional AMI override for app and bastion instances."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.app_ami_id == null || can(regex("^ami-[0-9a-f]+$", var.app_ami_id))
+    error_message = "app_ami_id must be null or look like a valid AMI ID (e.g., ami-1234abcd)."
+  }
+}
+
+variable "bastion_instance_type" {
+  description = "EC2 instance type for bastion host."
+  type        = string
+  default     = "t3.micro"
+
+  validation {
+    condition     = can(regex("^[a-z0-9][a-z0-9-]*\\.[a-z0-9]+$", var.bastion_instance_type))
+    error_message = "bastion_instance_type must look like a valid EC2 type (e.g., t3.micro)."
+  }
+}
+
+variable "app_instance_type" {
+  description = "EC2 instance type for app instances."
+  type        = string
+  default     = "t3.micro"
+
+  validation {
+    condition     = can(regex("^[a-z0-9][a-z0-9-]*\\.[a-z0-9]+$", var.app_instance_type))
+    error_message = "app_instance_type must look like a valid EC2 type (e.g., t3.micro)."
+  }
+}
+
+variable "app_instance_count" {
+  description = "Number of app instances in private subnets."
+  type        = number
+  default     = 2
+
+  validation {
+    condition     = var.app_instance_count == floor(var.app_instance_count)
+    error_message = "app_instance_count must be a whole number."
+  }
+
+  validation {
+    condition     = var.app_instance_count >= 1 && var.app_instance_count <= 20
+    error_message = "app_instance_count must be between 1 and 20."
+  }
+}
+
+variable "log_retention_days" {
+  description = "CloudWatch Logs retention in days."
+  type        = number
+  default     = 7
+
+  validation {
+    condition     = var.log_retention_days == floor(var.log_retention_days)
+    error_message = "log_retention_days must be a whole number."
+  }
+
+  validation {
+    condition = contains([
+      1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365,
+      400, 545, 731, 1096, 1827, 2192, 2557, 2922, 3288, 3653
+    ], var.log_retention_days)
+    error_message = "log_retention_days must be one of AWS allowed retention values."
+  }
+}
+
+variable "alarm_email" {
+  description = "Optional email address for alarm notifications."
+  type        = string
+  default     = ""
+
+  validation {
+    condition = trimspace(var.alarm_email) == "" || can(
+      regex("^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)+$", trimspace(var.alarm_email))
+    )
+    error_message = "alarm_email must be empty or a valid email address."
+  }
+}
+
+variable "cpu_threshold_percent" {
+  description = "CPU utilization threshold for high CPU alarms."
+  type        = number
+  default     = 80
+
+  validation {
+    condition     = var.cpu_threshold_percent > 0 && var.cpu_threshold_percent <= 100
+    error_message = "cpu_threshold_percent must be between 0 and 100."
+  }
+}
+
 variable "public_subnets" {
   description = "Public subnets keyed by name. Each item must include cidr and az."
   type = map(object({

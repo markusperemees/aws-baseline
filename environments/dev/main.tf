@@ -43,3 +43,49 @@ module "iam" {
   environment  = var.environment
   tags         = var.tags
 }
+
+module "ec2" {
+  source = "../../modules/ec2"
+
+  project_name = var.project_name
+  environment  = var.environment
+  tags         = var.tags
+
+  public_subnet_id          = module.vpc.public_subnet_ids[0]
+  private_subnet_ids        = module.vpc.private_subnet_ids
+  bastion_sg_id             = module.security_groups.bastion_sg_id
+  app_sg_id                 = module.security_groups.app_sg_id
+  iam_instance_profile_name = module.iam.instance_profile_name
+
+  key_name              = var.key_name
+  ami_id                = var.app_ami_id
+  bastion_instance_type = var.bastion_instance_type
+  app_instance_type     = var.app_instance_type
+  app_instance_count    = var.app_instance_count
+}
+
+module "alb" {
+  source = "../../modules/alb"
+
+  project_name = var.project_name
+  environment  = var.environment
+  tags         = var.tags
+
+  vpc_id            = module.vpc.vpc_id
+  public_subnet_ids = module.vpc.public_subnet_ids
+  alb_sg_id         = module.security_groups.alb_sg_id
+  app_instance_ids  = module.ec2.app_instance_ids
+}
+
+module "observability" {
+  source = "../../modules/observability"
+
+  project_name = var.project_name
+  environment  = var.environment
+  tags         = var.tags
+
+  app_instance_ids      = module.ec2.app_instance_ids
+  log_retention_days    = var.log_retention_days
+  alarm_email           = var.alarm_email
+  cpu_threshold_percent = var.cpu_threshold_percent
+}

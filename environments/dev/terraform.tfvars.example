@@ -6,6 +6,18 @@ vpc_cidr           = "10.0.0.0/16"
 enable_nat_gateway = false
 bastion_ssh_cidr   = "203.0.113.10/32"
 
+# EC2
+key_name              = null
+app_ami_id            = null
+bastion_instance_type = "t3.micro"
+app_instance_type     = "t3.micro"
+app_instance_count    = 2
+
+# Observability
+log_retention_days    = 7
+alarm_email           = ""
+cpu_threshold_percent = 80
+
 public_subnets = {
   public-a = {
     cidr = "10.0.1.0/24"

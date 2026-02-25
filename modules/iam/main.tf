@@ -1,5 +1,8 @@
 locals {
   name_prefix = "${var.project_name}-${var.environment}"
+  backup_bucket_arn = var.backup_bucket_arn == null ? null : trimspace(var.backup_bucket_arn)
+  backup_bucket_prefix = trim(trimspace(var.backup_bucket_prefix), "/")
+  enable_backup_s3_policy = local.backup_bucket_arn != null && local.backup_bucket_arn != ""
   default_tags = {
     Project     = var.project_name
     Environment = var.environment
@@ -72,7 +75,7 @@ resource "aws_iam_role_policy_attachment" "ssm_core" {
 }
 
 data "aws_iam_policy_document" "backup_s3_write" {
-  count = var.backup_bucket_arn == null ? 0 : 1
+  count = local.enable_backup_s3_policy ? 1 : 0
 
   statement {
     sid = "BackupBucketListPrefix"
@@ -80,12 +83,15 @@ data "aws_iam_policy_document" "backup_s3_write" {
       "s3:ListBucket",
       "s3:GetBucketLocation"
     ]
-    resources = [var.backup_bucket_arn]
+    resources = [local.backup_bucket_arn]
 
     condition {
       test     = "StringLike"
       variable = "s3:prefix"
-      values   = ["${var.backup_bucket_prefix}/*"]
+      values   = [
+        local.backup_bucket_prefix,
+        "${local.backup_bucket_prefix}/*"
+      ]
     }
   }
 
@@ -96,12 +102,12 @@ data "aws_iam_policy_document" "backup_s3_write" {
       "s3:AbortMultipartUpload",
       "s3:ListMultipartUploadParts"
     ]
-    resources = ["${var.backup_bucket_arn}/${var.backup_bucket_prefix}/*"]
+    resources = ["${local.backup_bucket_arn}/${local.backup_bucket_prefix}/*"]
   }
 }
 
 resource "aws_iam_role_policy" "backup_s3_write" {
-  count = var.backup_bucket_arn == null ? 0 : 1
+  count = local.enable_backup_s3_policy ? 1 : 0
 
   name   = "${local.name_prefix}-backup-s3-write"
   role   = aws_iam_role.ec2.id

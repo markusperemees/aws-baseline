@@ -23,6 +23,14 @@ variable "backup_bucket_arn" {
   description = "Optional S3 bucket ARN for backup uploads."
   type        = string
   default     = null
+
+  validation {
+    condition = var.backup_bucket_arn == null || (
+      length(trimspace(var.backup_bucket_arn)) > 0 &&
+      can(regex("^arn:(aws|aws-us-gov|aws-cn):s3:::[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$", trimspace(var.backup_bucket_arn)))
+    )
+    error_message = "backup_bucket_arn must be null or a valid S3 bucket ARN (e.g., arn:aws:s3:::my-backup-bucket)."
+  }
 }
 
 variable "backup_bucket_prefix" {
@@ -31,7 +39,7 @@ variable "backup_bucket_prefix" {
   default     = "monitoring-stack"
 
   validation {
-    condition     = length(trimspace(var.backup_bucket_prefix)) > 0
-    error_message = "backup_bucket_prefix must not be empty."
+    condition     = length(trim(trimspace(var.backup_bucket_prefix), "/")) > 0
+    error_message = "backup_bucket_prefix must not be empty or only '/'."
   }
 }
