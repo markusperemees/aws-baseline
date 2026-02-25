@@ -41,6 +41,16 @@ variable "enable_nat_gateway" {
   default     = false
 }
 
+variable "bastion_ssh_cidr" {
+  description = "CIDR block for your public IP (used for Bastion SSH access)."
+  type        = string
+
+  validation {
+    condition     = can(cidrnetmask(var.bastion_ssh_cidr))
+    error_message = "bastion_ssh_cidr must be a valid CIDR block (e.g., 203.0.113.10/32)."
+  }
+}
+
 variable "public_subnets" {
   description = "Public subnets keyed by name. Each item must include cidr and az."
   type = map(object({

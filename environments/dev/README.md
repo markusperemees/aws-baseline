@@ -4,7 +4,7 @@ This directory contains Terraform configuration for the `dev` environment.
 
 ## Files
 
-- `main.tf`: root module wiring (currently VPC module).
+- `main.tf`: root module wiring (VPC and security groups modules).
 - `variables.tf`: input variable definitions and validation.
 - `terraform.tfvars.example`: example values for local `terraform.tfvars`.
 - `backend.tf`: remote state backend configuration (S3 + DynamoDB lock).
